@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 // utils
 import omit from './utils/omit';
 import shallowEqual from './utils/shallowEqual';
-import { flushSync } from 'react-dom';
 
 const mainStyle = {
   width: '100%',
@@ -94,7 +93,7 @@ export default class GoogleMapMarkers extends Component {
     this.props.dispatcher.removeListener('kON_CLICK', this._onChildClick);
     this.props.dispatcher.removeListener('kON_MDOWN', this._onChildMouseDown);
 
-    this.dimensionsCache_ = null;
+    this.dimensionsCache_ = {};
   }
 
   _getState = () => ({
@@ -110,14 +109,12 @@ export default class GoogleMapMarkers extends Component {
     const prevChildCount = (this.state.children || []).length;
     const state = this._getState();
 
-    flushSync(() => {
-      this.setState(
-        state,
-        () =>
-          (state.children || []).length !== prevChildCount &&
-          this._onMouseChangeHandler()
-      );
-    });
+    this.setState(
+      state,
+      () =>
+        (state.children || []).length !== prevChildCount &&
+        this._onMouseChangeHandler()
+    );
   };
 
   _onChildClick = () => {
