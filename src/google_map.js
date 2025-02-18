@@ -1,5 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies, react/forbid-prop-types, react/no-find-dom-node, no-console, no-undef */
-import React, { Component } from 'react';
+import React, { Component, forwardRef } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM, { flushSync } from 'react-dom';
 
@@ -95,7 +95,7 @@ const isFullScreen = () =>
   document.mozFullScreen ||
   document.msFullscreenElement;
 
-class GoogleMap extends Component {
+class GoogleMapWithRef extends Component {
   static propTypes = {
     apiKey: PropTypes.string,
     bootstrapURLKeys: PropTypes.any,
@@ -207,7 +207,7 @@ class GoogleMap extends Component {
     this.childMouseDownArgs_ = null;
     this.childMouseUpTime_ = 0;
 
-    this.googleMapDom_ = null;
+    this.googleMapDom_ = this.props.forwardedRef;
 
     if (process.env.NODE_ENV !== 'production') {
       if (this.props.apiKey) {
@@ -262,7 +262,8 @@ class GoogleMap extends Component {
     this.markersDispatcher_ = new MarkerDispatcher(this);
     addPassiveEventListener(window, 'resize', this._onWindowResize, false);
     addPassiveEventListener(window, 'keydown', this._onKeyDownCapture, true);
-    const mapDom = ReactDOM.findDOMNode(this.googleMapDom_);
+    ReactDOM
+    const mapDom = this.googleMapDom_;
     // gmap can't prevent map drag if mousedown event already occured
     // the only workaround I find is prevent mousedown native browser event
 
@@ -435,7 +436,7 @@ class GoogleMap extends Component {
 
   componentWillUnmount() {
     this.mounted_ = false;
-    const mapDom = ReactDOM.findDOMNode(this.googleMapDom_);
+    const mapDom = this.googleMapDom_;
     if (mapDom) {
       mapDom.removeEventListener('mousedown', this._onMapMouseDownNative, true);
     }
@@ -618,7 +619,7 @@ class GoogleMap extends Component {
         mapOptions.minZoom = _checkMinZoom(mapOptions.minZoom, minZoom);
 
         const map = new maps.Map(
-          ReactDOM.findDOMNode(this.googleMapDom_),
+          this.googleMapDom_,
           mapOptions
         );
 
@@ -938,7 +939,7 @@ class GoogleMap extends Component {
     if (isFullScreen()) {
       this.geoService_.setViewSize(window.innerWidth, window.innerHeight);
     } else {
-      const mapDom = ReactDOM.findDOMNode(this.googleMapDom_);
+      const mapDom = this.googleMapDom_;
       this.geoService_.setViewSize(mapDom.clientWidth, mapDom.clientHeight);
     }
     this._onBoundsChanged();
@@ -1171,5 +1172,9 @@ class GoogleMap extends Component {
     );
   }
 }
+
+const GoogleMap = forwardRef((props, ref) => (
+  <GoogleMapWithRef {...props} forwardedRef={ref} />
+));
 
 export default GoogleMap;
